@@ -1,0 +1,75 @@
+---
+
+stages:
+  - test
+  - build
+  - release
+
+variables:
+  GOPATH: $CI_PROJECT_DIR/.go
+
+.go_cache: &go_cache
+  key:
+    files:
+      - go.sum
+  paths:
+    - .go/
+
+.parallel: &parallel
+  matrix:
+    - GOOS: linux
+      GOARCH:
+        - amd64
+        - arm64
+    - GOOS: darwin
+      GOARCH:
+        - amd64
+        - arm64
+    - GOOS: windows
+      GOARCH:
+        - amd64
+
+lint:
+  stage: test
+  image: golang:1.19.5
+  needs: []
+  cache: *go_cache
+  before_script:
+    - make prepare
+  script:
+    - make lint
+
+build:
+  stage: build
+  image: golang:1.19.5
+  needs: []
+  cache: *go_cache
+  before_script:
+    - make prepare
+  script:
+    - make build
+  artifacts:
+    name: "artifacts-$GOOS-$GOARCH"
+    paths:
+      - bin/$GOOS/$GOARCH/
+  parallel: *parallel
+
+release:upload:
+  stage: release
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /^\[release \d+\.\d+\.\d+\]/
+  dependencies:
+    - build
+  script:
+    - build/ci-upload.sh
+
+release:release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli
+  rules:
+    - if: $CI_COMMIT_MESSAGE =~ /^\[release \d+\.\d+\.\d+\]/
+  dependencies:
+    - build
+  script:
+    - build/ci-release.sh
