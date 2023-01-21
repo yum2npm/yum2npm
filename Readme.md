@@ -57,7 +57,7 @@ Below is an example on how to use Renovate to update yum packages.
             ],
             "datasourceTemplate": "npm",
             "versioningTemplate": "loose",
-            {{`"registryUrlTemplate": "https://yum2npm.io/repos/{{#if (containsString registryUrl '/')}}{{{replace '/' '/modules/' registryUrl}}}{{else}}{{registryUrl}}{{/if}}/packages"`}}
+            "registryUrlTemplate": "https://yum2npm.io/repos/{{#if (containsString registryUrl '/')}}{{{replace '/' '/modules/' registryUrl}}}{{else}}{{registryUrl}}{{/if}}/packages"
         }
     ]
 }
