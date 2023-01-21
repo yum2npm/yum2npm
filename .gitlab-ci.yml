@@ -59,6 +59,8 @@ release:upload:
   image: curlimages/curl:latest
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /^\[release \d+\.\d+\.\d+\]/
+    - if: $CI_COMMIT_TAG
+      when: never
   dependencies:
     - build
   script:
@@ -69,6 +71,8 @@ release:release:
   image: registry.gitlab.com/gitlab-org/release-cli
   rules:
     - if: $CI_COMMIT_MESSAGE =~ /^\[release \d+\.\d+\.\d+\]/
+    - if: $CI_COMMIT_TAG
+      when: never
   dependencies:
     - build
   script:
