@@ -2,6 +2,7 @@ package data
 
 import (
 	"log/slog"
+	"sync"
 	"time"
 
 	"gitlab.com/yum2npm/yum2npm/pkg/config"
@@ -21,10 +22,14 @@ type Update struct {
 
 func FetchPeriodically(interval time.Duration, repos []config.Repo, c chan<- Update) {
 	for {
+		mu := sync.Mutex{}
+		mu.Lock()
 		go func() {
 			r, m := fetch(repos)
 			c <- Update{r, m}
+			mu.Unlock()
 		}()
+
 		time.Sleep(interval)
 	}
 }
