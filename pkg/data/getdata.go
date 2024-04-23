@@ -1,7 +1,7 @@
 package data
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"gitlab.com/yum2npm/yum2npm/pkg/config"
@@ -19,7 +19,7 @@ type Update struct {
 	Modules  Modules
 }
 
-func FetchPeriodically(interval time.Duration, repos []config.Repo, c chan Update) {
+func FetchPeriodically(interval time.Duration, repos []config.Repo, c chan<- Update) {
 	for {
 		go func() {
 			r, m := fetch(repos)
@@ -34,16 +34,16 @@ func fetch(repos []config.Repo) (Repodata, Modules) {
 	m := Modules{}
 
 	for _, repo := range repos {
-		log.Printf("Refreshing %s", repo.Name)
+		slog.Info("Refreshing repository", "Repository", repo.Name)
 		repomd, err := yumrepodata.GetRepoMetadata(repo.Url)
 		if err != nil {
-			log.Print(err)
+			slog.Error("Error fetching repository metadata", "Repository", repo.Name, "Error", err)
 			continue
 		}
 
 		primary, err := yumrepodata.GetPrimary(repo.Url, repomd)
 		if err != nil {
-			log.Print(err)
+			slog.Error("Error fetching repository primary", "Repository", repo.Name, "Error", err)
 			continue
 		}
 
@@ -51,7 +51,7 @@ func fetch(repos []config.Repo) (Repodata, Modules) {
 
 		modules, err := yumrepodata.GetModules(repo.Url, repomd)
 		if err != nil {
-			log.Print(err)
+			slog.Error("Error fetching repository modules", "Repository", repo.Name, "Error", err)
 			continue
 		}
 

@@ -5,7 +5,7 @@ import (
 	_ "embed"
 	"gitlab.com/yum2npm/yum2npm/pkg/utils"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -36,14 +36,14 @@ func IndexHandler(repos []config.Repo) http.HandlerFunc {
 		t, err := template.New("index.gohtml").Parse(indexTemplate)
 		if err != nil {
 			utils.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			log.Print(err)
+			slog.Error("Error parsing index template", "Error", err)
 			return
 		}
 
 		var out bytes.Buffer
 		if err = t.Execute(&out, repos); err != nil {
 			utils.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			log.Print(err)
+			slog.Error("Error executing index template", "Error", err)
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
