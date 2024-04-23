@@ -19,7 +19,7 @@ type NpmIndex struct {
 	Versions map[string]yumrepodata.ModulePackage `json:"versions"`
 }
 
-//go:embed index.html
+//go:embed index.gohtml
 var indexTemplate string
 
 func IndexHandler(repos []config.Repo) http.HandlerFunc {
@@ -33,7 +33,7 @@ func IndexHandler(repos []config.Repo) http.HandlerFunc {
 			return
 		}
 
-		t, err := template.New("index.html").Parse(indexTemplate)
+		t, err := template.New("index.gohtml").Parse(indexTemplate)
 		if err != nil {
 			utils.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			log.Print(err)
