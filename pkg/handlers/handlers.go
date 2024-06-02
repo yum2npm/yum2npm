@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"gitlab.com/yum2npm/yum2npm/pkg/config"
@@ -47,6 +48,7 @@ func IndexHandler(repos []config.Repo) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Header().Set("Content-Length", strconv.Itoa(len(out.Bytes())))
 		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(out.Bytes())
 		if err != nil {
