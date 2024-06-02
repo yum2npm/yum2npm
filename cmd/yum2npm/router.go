@@ -1,39 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/gin-gonic/gin"
 	"gitlab.com/yum2npm/yum2npm/pkg/handlers"
+	"gitlab.com/yum2npm/yum2npm/pkg/middleware"
+	"net/http"
 )
 
-func setupRouter() *gin.Engine {
-	r := gin.New()
+func setupRouter() http.Handler {
+	mux := http.NewServeMux()
 
-	r.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
-		return fmt.Sprintf("%s - [%s] \"%s %s %s %d %s \"%s\" %s\"\n",
-			param.ClientIP,
-			param.TimeStamp.Format(time.RFC1123),
-			param.Method,
-			param.Path,
-			param.Request.Proto,
-			param.StatusCode,
-			param.Latency,
-			param.Request.UserAgent(),
-			param.ErrorMessage,
-		)
-	}))
+	mux.HandleFunc("/", handlers.IndexHandler(config.Repos))
+	mux.HandleFunc("GET /repos", handlers.GetRepos(config.Repos))
+	mux.HandleFunc("GET /repos/{repo}/packages", handlers.GetPackages(&repodata))
+	mux.HandleFunc("GET /repos/{repo}/packages/{package}", handlers.GetPackage(&repodata))
+	mux.HandleFunc("GET /repos/{repo}/modules", handlers.GetModules(&modules))
+	mux.HandleFunc("GET /repos/{repo}/modules/{module}/packages", handlers.GetModulePackages(&modules))
+	mux.HandleFunc("GET /repos/{repo}/modules/{module}/packages/:package", handlers.GetModulePackage(&modules))
 
-	r.Use(gin.Recovery())
-
-	r.GET("/", handlers.IndexHandler(config.Repos))
-	r.GET("/repos", handlers.GetRepos(config.Repos))
-	r.GET("/repos/:repo/packages", handlers.GetPackages(&repodata))
-	r.GET("/repos/:repo/packages/:package", handlers.GetPackage(&repodata))
-	r.GET("/repos/:repo/modules", handlers.GetModules(&modules))
-	r.GET("/repos/:repo/modules/:module/packages", handlers.GetModulePackages(&modules))
-	r.GET("/repos/:repo/modules/:module/packages/:package", handlers.GetModulePackage(&modules))
-
-	return r
+	return middleware.Log(mux)
 }

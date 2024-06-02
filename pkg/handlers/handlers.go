@@ -3,12 +3,12 @@ package handlers
 import (
 	"bytes"
 	_ "embed"
+	"gitlab.com/yum2npm/yum2npm/pkg/utils"
 	"html/template"
 	"log"
 	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"gitlab.com/yum2npm/yum2npm/pkg/config"
 	"gitlab.com/yum2npm/yum2npm/pkg/data"
 	"gitlab.com/yum2npm/yum2npm/pkg/yumrepodata"
@@ -22,108 +22,122 @@ type NpmIndex struct {
 //go:embed index.html
 var indexTemplate string
 
-func IndexHandler(repos []config.Repo) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func IndexHandler(repos []config.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.RequestURI != "/" {
+			utils.NotFound(w)
+			return
+		}
+		if r.Method != http.MethodGet {
+			utils.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
+			return
+		}
+
 		t, err := template.New("index.html").Parse(indexTemplate)
 		if err != nil {
-			c.String(http.StatusNotFound, http.StatusText(500), 500)
+			utils.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			log.Print(err)
 			return
 		}
 
 		var out bytes.Buffer
 		if err = t.Execute(&out, repos); err != nil {
-			c.String(http.StatusNotFound, http.StatusText(500), 500)
+			utils.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			log.Print(err)
 			return
 		}
-		c.Data(http.StatusOK, "text/html; charset=utf-8", out.Bytes())
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(out.Bytes())
 	}
 }
 
-func GetRepos(repos []config.Repo) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.JSON(http.StatusOK, repos)
+func GetRepos(repos []config.Repo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		utils.JsonResponse(w, repos)
 	}
 }
 
-func GetPackages(repodata *data.Repodata) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		if _, exists := (*repodata)[c.Param("repo")]; !exists {
-			c.String(http.StatusNotFound, http.StatusText(404))
-			return
-		}
-		c.JSON(http.StatusOK, (*repodata)[c.Param("repo")])
-	}
-}
-
-func GetModules(modules *data.Modules) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		mods, exists := (*modules)[c.Param("repo")]
+func GetPackages(repodata *data.Repodata) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		repo, exists := (*repodata)[r.PathValue("repo")]
 		if !exists {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
-		c.JSON(http.StatusOK, mods)
+
+		utils.JsonResponse(w, repo)
 	}
 }
 
-func GetModulePackages(modules *data.Modules) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		moduleIdentifier := strings.Split(c.Param("module"), ":")
-		module, exists := (*modules)[c.Param("repo")][moduleIdentifier[0]][moduleIdentifier[1]]
+func GetModules(modules *data.Modules) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		mods, exists := (*modules)[r.PathValue("repo")]
 		if !exists {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
 
-		c.JSON(http.StatusOK, module.GetPackages())
+		utils.JsonResponse(w, mods)
 	}
 }
 
-func GetModulePackage(modules *data.Modules) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		moduleIdentifier := strings.Split(c.Param("module"), ":")
-		module, exists := (*modules)[c.Param("repo")][moduleIdentifier[0]][moduleIdentifier[1]]
+func GetModulePackages(modules *data.Modules) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		moduleIdentifier := strings.Split(r.PathValue("module"), ":")
+		module, exists := (*modules)[r.PathValue("repo")][moduleIdentifier[0]][moduleIdentifier[1]]
 		if !exists {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
 
-		packages, err := module.GetPackageVersions(c.Param("package"))
+		utils.JsonResponse(w, module.GetPackages())
+	}
+}
+
+func GetModulePackage(modules *data.Modules) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		moduleIdentifier := strings.Split(r.PathValue("module"), ":")
+		module, exists := (*modules)[r.PathValue("repo")][moduleIdentifier[0]][moduleIdentifier[1]]
+		if !exists {
+			utils.NotFound(w)
+			return
+		}
+
+		packages, err := module.GetPackageVersions(r.PathValue("package"))
 		if err != nil {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
 
 		index := NpmIndex{
-			Name:     c.Param("package"),
+			Name:     r.PathValue("package"),
 			Versions: packages,
 		}
 
-		c.JSON(http.StatusOK, index)
+		utils.JsonResponse(w, index)
 	}
 }
 
-func GetPackage(repodata *data.Repodata) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		repo, exists := (*repodata)[c.Param("repo")]
+func GetPackage(repodata *data.Repodata) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		repo, exists := (*repodata)[r.PathValue("repo")]
 		if !exists {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
 
-		packages, err := repo.GetPackageVersions(c.Param("package"))
+		packages, err := repo.GetPackageVersions(r.PathValue("package"))
 		if err != nil {
-			c.String(http.StatusNotFound, http.StatusText(404))
+			utils.NotFound(w)
 			return
 		}
 
 		index := NpmIndex{
-			Name:     c.Param("package"),
+			Name:     r.PathValue("package"),
 			Versions: packages,
 		}
 
-		c.JSON(http.StatusOK, index)
+		utils.JsonResponse(w, index)
 	}
 }

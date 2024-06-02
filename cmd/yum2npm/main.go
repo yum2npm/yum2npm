@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
@@ -35,7 +36,12 @@ func init() {
 }
 
 func main() {
-	r := setupRouter()
+	mux := setupRouter()
 
-	r.Run(config.HTTP.Host + ":" + config.HTTP.Port)
+	s := &http.Server{
+		Addr:    config.HTTP.Host + ":" + config.HTTP.Port,
+		Handler: mux,
+	}
+
+	log.Fatal(s.ListenAndServe())
 }
