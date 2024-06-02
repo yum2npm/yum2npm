@@ -42,13 +42,13 @@ func main() {
 	mux := setupRouter(&config)
 
 	server := &http.Server{
-		Addr:    config.HTTP.Host + ":" + config.HTTP.Port,
+		Addr:    config.HTTP.ListenAddress,
 		Handler: mux,
 	}
 
 	errCh := make(chan error, 1)
 
-	go startServer(server, errCh)
+	go startServer(&config, server, errCh)
 	go signalHandler(server, errCh)
 
 	for {

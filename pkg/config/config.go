@@ -16,8 +16,9 @@ type Config struct {
 }
 
 type HTTP struct {
-	Host string `yaml:"host"`
-	Port string `yaml:"port"`
+	ListenAddress string `yaml:"listen_addr"`
+	CertFile      string `yaml:"cert_file"`
+	KeyFile       string `yaml:"key_file"`
 }
 
 type Repo struct {
@@ -28,8 +29,7 @@ type Repo struct {
 func Init(file string) (Config, error) {
 	config := Config{
 		HTTP: HTTP{
-			Host: "0.0.0.0",
-			Port: "8080",
+			ListenAddress: ":8080",
 		},
 		RefreshInterval: time.Hour,
 	}
@@ -51,6 +51,13 @@ func Init(file string) (Config, error) {
 }
 
 func (c Config) isValid() error {
+	if len(c.HTTP.CertFile) > 0 && len(c.HTTP.KeyFile) == 0 {
+		return fmt.Errorf("http key file must be specified if cert file is")
+	}
+	if len(c.HTTP.KeyFile) > 0 && len(c.HTTP.CertFile) == 0 {
+		return fmt.Errorf("http cert file must be specified if key file is")
+	}
+
 	if len(c.Repos) == 0 {
 		return fmt.Errorf("no repos are configured")
 	}

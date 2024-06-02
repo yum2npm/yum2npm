@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,8 +11,12 @@ import (
 	"time"
 )
 
-func startServer(server *http.Server, errCh chan<- error) {
-	errCh <- server.ListenAndServe()
+func startServer(config *conf.Config, server *http.Server, errCh chan<- error) {
+	if len(config.HTTP.CertFile) > 0 && len(config.HTTP.KeyFile) > 0 {
+		errCh <- server.ListenAndServeTLS(config.HTTP.CertFile, config.HTTP.KeyFile)
+	} else {
+		errCh <- server.ListenAndServe()
+	}
 }
 
 func shutdownServer(server *http.Server, errCh chan<- error) {
