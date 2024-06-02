@@ -5,6 +5,8 @@ import (
 	"compress/gzip"
 	"encoding/xml"
 	"errors"
+	"github.com/h2non/filetype"
+	"github.com/ulikunitz/xz"
 	"io"
 	"regexp"
 
@@ -48,9 +50,20 @@ func GetPrimary(baseUrl string, repomd RepoMetadata) (PrimaryMetadata, error) {
 		return PrimaryMetadata{}, err
 	}
 
-	r, err := gzip.NewReader(bytes.NewReader(raw))
+	var r io.Reader
+
+	kind, err := filetype.Match(raw)
 	if err != nil {
 		return PrimaryMetadata{}, err
+	}
+	switch kind.MIME.Value {
+	case "application/gzip":
+		r, err = gzip.NewReader(bytes.NewReader(raw))
+	case "application/x-xz":
+		r, err = xz.NewReader(bytes.NewReader(raw))
+	default:
+		r = bytes.NewReader(raw)
+		err = nil
 	}
 
 	res, err := io.ReadAll(r)
