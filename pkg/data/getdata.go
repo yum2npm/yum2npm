@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"gitlab.com/yum2npm/yum2npm/pkg/config"
+	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
 	"gitlab.com/yum2npm/yum2npm/pkg/yumrepodata"
 )
 
@@ -15,30 +15,21 @@ type Repodata map[string]yumrepodata.PrimaryMetadata
 // Modules [<repo>][<module>][<stream>]
 type Modules map[string]map[string]map[string]yumrepodata.Module
 
-type Update struct {
-	Repodata Repodata
-	Modules  Modules
-}
-
-func FetchPeriodically(interval time.Duration, repos []config.Repo, c chan<- Update) {
+func FetchPeriodically(config *conf.Config, repodata *Repodata, modules *Modules) {
 	for {
 		mu := sync.Mutex{}
 		mu.Lock()
 		go func() {
-			r, m := fetch(repos)
-			c <- Update{r, m}
+			fetch(config, repodata, modules)
 			mu.Unlock()
 		}()
 
-		time.Sleep(interval)
+		time.Sleep(config.RefreshInterval)
 	}
 }
 
-func fetch(repos []config.Repo) (Repodata, Modules) {
-	r := Repodata{}
-	m := Modules{}
-
-	for _, repo := range repos {
+func fetch(config *conf.Config, repodata *Repodata, modules *Modules) {
+	for _, repo := range config.Repos {
 		slog.Info("Refreshing repository", "Repository", repo.Name)
 		repomd, err := yumrepodata.GetRepoMetadata(repo.Url)
 		if err != nil {
@@ -52,16 +43,12 @@ func fetch(repos []config.Repo) (Repodata, Modules) {
 			continue
 		}
 
-		r[repo.Name] = primary
+		(*repodata)[repo.Name] = primary
 
-		modules, err := yumrepodata.GetModules(repo.Url, repomd)
+		(*modules)[repo.Name], err = yumrepodata.GetModules(repo.Url, repomd)
 		if err != nil {
 			slog.Error("Error fetching repository modules", "Repository", repo.Name, "Error", err)
 			continue
 		}
-
-		m[repo.Name] = modules
 	}
-
-	return r, m
 }

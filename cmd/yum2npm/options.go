@@ -3,8 +3,9 @@ package main
 import "github.com/jessevdk/go-flags"
 
 type Options struct {
-	Config  string `long:"config" short:"c" default:"/etc/yum2npm/config.yaml" description:"Path to config.yaml"`
-	Version bool   `login:"version" short:"v" description:"Print version information"`
+	Config    string `long:"config" short:"c" default:"/etc/yum2npm/config.yaml" description:"Path to config.yaml"`
+	Version   bool   `long:"version" short:"v" description:"Print version information"`
+	Profiling bool   `long:"profiling" short:"p" description:"Enable profiling"`
 }
 
 func parseOpts() (Options, error) {

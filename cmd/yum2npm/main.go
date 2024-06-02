@@ -30,13 +30,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := make(chan data.Update)
-	var repodata *data.Repodata
-	var modules *data.Modules
-	go data.FetchPeriodically(config.RefreshInterval, config.Repos, c)
-	go receiveUpdates(c, repodata, modules)
+	repodata := make(data.Repodata)
+	modules := make(data.Modules)
+	go data.FetchPeriodically(&config, &repodata, &modules)
 
-	mux := setupRouter(&config, repodata, modules)
+	mux := setupRouter(&config, options.Profiling, &repodata, &modules)
 
 	server := &http.Server{
 		Addr:    config.HTTP.ListenAddress,
