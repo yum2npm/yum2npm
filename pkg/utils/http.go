@@ -13,7 +13,10 @@ func Error(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Length", strconv.Itoa(len(error)))
 	w.WriteHeader(code)
-	fmt.Fprint(w, error)
+	_, err := fmt.Fprint(w, error)
+	if err != nil {
+		slog.Error("error while writing respone", "Error", err)
+	}
 }
 
 func NotFound(w http.ResponseWriter) {
@@ -31,5 +34,8 @@ func JsonResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set("Content-Length", strconv.Itoa(len(j)))
 	w.WriteHeader(http.StatusOK)
-	w.Write(j)
+	_, err = w.Write(j)
+	if err != nil {
+		slog.Error("error while writing respone", "Error", err)
+	}
 }

@@ -48,7 +48,10 @@ func IndexHandler(repos []config.Repo) http.HandlerFunc {
 		}
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
-		w.Write(out.Bytes())
+		_, err = w.Write(out.Bytes())
+		if err != nil {
+			slog.Error("error while writing respone", "Error", err)
+		}
 	}
 }
 
