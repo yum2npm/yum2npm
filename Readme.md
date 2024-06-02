@@ -6,14 +6,14 @@ like [Renovate](https://github.com/renovatebot/renovate).
 
 ## API
 
-| Path | Description |
-|---|---|
-| `/repos` | Get available repositories |
-| `/repos/{repo}/packages` | Get packages available in a repository |
-| `/repos/{repo}/packages/{package}` | Get available versions of a package in a format like a NPM registry |
-| `/repos/{repo}/modules` | Get modules in a repository |
-| `/repos/{repo}/modules/{module}/packages` | Get packages in a module. The module parameter must be in the format "`{name}:{stream}`" |
-| `/repos/{repo}/modules/{module}/packages/{package}` | Get available versions of a package in a module in a format like a NPM registry |
+| Path                                                | Description                                                                              |
+|-----------------------------------------------------|------------------------------------------------------------------------------------------|
+| `/repos`                                            | Get available repositories                                                               |
+| `/repos/{repo}/packages`                            | Get packages available in a repository                                                   |
+| `/repos/{repo}/packages/{package}`                  | Get available versions of a package in a format like a NPM registry                      |
+| `/repos/{repo}/modules`                             | Get modules in a repository                                                              |
+| `/repos/{repo}/modules/{module}/packages`           | Get packages in a module. The module parameter must be in the format "`{name}:{stream}`" |
+| `/repos/{repo}/modules/{module}/packages/{package}` | Get available versions of a package in a module in a format like a NPM registry          |
 
 ## Config
 

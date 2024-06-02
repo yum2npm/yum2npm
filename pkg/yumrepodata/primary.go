@@ -83,7 +83,7 @@ func (p PrimaryMetadata) GetPackageVersions(name string) (map[string]ModulePacka
 	}
 
 	if len(filtered) == 0 {
-		return filtered, errors.New("Package not found")
+		return filtered, errors.New("package not found")
 	}
 
 	return filtered, nil

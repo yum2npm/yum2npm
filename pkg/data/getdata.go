@@ -9,10 +9,10 @@ import (
 	"gitlab.com/yum2npm/yum2npm/pkg/yumrepodata"
 )
 
-// Repodata[<repo>]
+// Repodata [<repo>]
 type Repodata map[string]yumrepodata.PrimaryMetadata
 
-// Modules[<repo>][<module>][<stream>]
+// Modules [<repo>][<module>][<stream>]
 type Modules map[string]map[string]map[string]yumrepodata.Module
 
 type Update struct {

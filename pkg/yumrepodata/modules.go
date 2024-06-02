@@ -10,7 +10,7 @@ import (
 
 	"github.com/ulikunitz/xz"
 	"gitlab.com/yum2npm/yum2npm/pkg/utils"
-	yaml "gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v3"
 )
 
 type Module struct {
@@ -128,7 +128,7 @@ func (mod Module) GetPackageVersions(name string) (map[string]ModulePackage, err
 		}
 	}
 	if len(filtered) == 0 {
-		return filtered, errors.New("Package not found")
+		return filtered, errors.New("package not found")
 	}
 
 	return filtered, nil
