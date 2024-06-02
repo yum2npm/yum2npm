@@ -2,12 +2,9 @@ package main
 
 import "gitlab.com/yum2npm/yum2npm/pkg/data"
 
-var repodata = data.Repodata{}
-var modules = data.Modules{}
-
-func receiveUpdates(c chan data.Update) {
+func receiveUpdates(c chan data.Update, repodata *data.Repodata, modules *data.Modules) {
 	for u := range c {
-		repodata = u.Repodata
-		modules = u.Modules
+		repodata = &u.Repodata
+		modules = &u.Modules
 	}
 }
