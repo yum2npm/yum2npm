@@ -4,20 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
+	"gitlab.com/yum2npm/yum2npm/pkg/data"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-
-	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
-	"gitlab.com/yum2npm/yum2npm/pkg/data"
 )
 
 var Version = "devel"
 
-var config = conf.Config{}
-
-func init() {
+func main() {
 	options, err := parseOpts()
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +25,7 @@ func init() {
 		os.Exit(0)
 	}
 
-	config, err = conf.Init(options.Config)
+	config, err := conf.Init(options.Config)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,9 +33,7 @@ func init() {
 	c := make(chan data.Update)
 	go data.FetchPeriodically(config.RefreshInterval, config.Repos, c)
 	go receiveUpdates(c)
-}
 
-func main() {
 	mux := setupRouter(&config)
 
 	server := &http.Server{
