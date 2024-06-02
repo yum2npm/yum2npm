@@ -1,12 +1,13 @@
 package main
 
 import (
+	conf "gitlab.com/yum2npm/yum2npm/pkg/config"
 	"gitlab.com/yum2npm/yum2npm/pkg/handlers"
 	"gitlab.com/yum2npm/yum2npm/pkg/middleware"
 	"net/http"
 )
 
-func setupRouter() http.Handler {
+func setupRouter(config *conf.Config) http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", handlers.IndexHandler(config.Repos))

@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
@@ -36,12 +39,28 @@ func init() {
 }
 
 func main() {
-	mux := setupRouter()
+	mux := setupRouter(&config)
 
-	s := &http.Server{
+	server := &http.Server{
 		Addr:    config.HTTP.Host + ":" + config.HTTP.Port,
 		Handler: mux,
 	}
 
-	log.Fatal(s.ListenAndServe())
+	errCh := make(chan error, 1)
+
+	go startServer(server, errCh)
+	go signalHandler(server, errCh)
+
+	for {
+		select {
+		case err, ok := <-errCh:
+			if !ok {
+				return
+			}
+			if err != nil && !errors.Is(err, http.ErrServerClosed) && !errors.Is(err, context.DeadlineExceeded) {
+				slog.Error("Error during server initialization", "Error", err)
+				close(errCh)
+			}
+		}
+	}
 }
