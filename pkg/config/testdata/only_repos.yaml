@@ -1,0 +1,11 @@
+---
+
+repos:
+  - name: rocky-9-appstream-x86_64
+    url: https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os
+  - name: rocky-9-baseos-x86_64
+    url: https://dl.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os
+  - name: rocky-9-extras-x86_64
+    url: https://dl.rockylinux.org/pub/rocky/9/extras/x86_64/os
+  - name: rocky-9-crb-x86_64
+    url: https://dl.rockylinux.org/pub/rocky/9/CRB/x86_64/os/

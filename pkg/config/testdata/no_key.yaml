@@ -1,0 +1,7 @@
+---
+
+http:
+  cert_file: /etc/yum2npm/fullchain.pem
+repos:
+  - name: rocky-9-appstream-x86_64
+    url: https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os

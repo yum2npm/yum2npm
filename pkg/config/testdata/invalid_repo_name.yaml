@@ -1,0 +1,5 @@
+---
+
+repos:
+  - name: Rocky 9 AppStream (x86_64)
+    url: https://dl.rockylinux.org/pub/rocky/9/AppStream/x86_64/os
