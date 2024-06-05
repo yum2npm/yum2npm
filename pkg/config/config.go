@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"regexp"
 	"time"
@@ -70,6 +71,13 @@ func (c Config) isValid() error {
 		}
 		if len(repo.Url) == 0 {
 			return fmt.Errorf("repo %d (%s) does not have an URL", i, repo.Name)
+		}
+		u, err := url.Parse(repo.Url)
+		if err != nil {
+			return fmt.Errorf("repo %d (%s) has an invalid URL: %w", i, repo.Name, err)
+		}
+		if u.Scheme == "" || u.Host == "" || u.Path == "" {
+			return fmt.Errorf("repo %d (%s) has an invalid URL", i, repo.Name)
 		}
 	}
 
