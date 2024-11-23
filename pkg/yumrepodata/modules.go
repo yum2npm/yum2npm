@@ -1,14 +1,10 @@
 package yumrepodata
 
 import (
-	"bytes"
-	"compress/gzip"
+	"context"
 	"errors"
 	"io"
 
-	"github.com/h2non/filetype"
-
-	"github.com/ulikunitz/xz"
 	"gitlab.com/yum2npm/yum2npm/pkg/utils"
 	"gopkg.in/yaml.v3"
 )
@@ -33,7 +29,7 @@ type ModulePackage struct {
 	Version string `json:"version"`
 }
 
-func GetModules(baseUrl string, repomd RepoMetadata) (map[string]map[string]Module, error) {
+func GetModules(ctx context.Context, baseUrl string, repomd *RepoMetadata) (mods map[string]map[string]Module, err error) {
 	var modules string
 	for _, x := range repomd.Data {
 		if x.Type == "modules" {
@@ -43,61 +39,33 @@ func GetModules(baseUrl string, repomd RepoMetadata) (map[string]map[string]Modu
 	}
 
 	if len(modules) == 0 {
-		return make(map[string]map[string]Module), nil
-	}
-
-	raw, err := utils.FetchUrl(baseUrl + "/" + modules)
-	if err != nil {
-		return make(map[string]map[string]Module), err
+		return
 	}
 
 	var r io.Reader
-
-	kind, err := filetype.Match(raw)
+	r, err = utils.FetchUrl(ctx, baseUrl+"/"+modules)
 	if err != nil {
-		return make(map[string]map[string]Module), err
-	}
-	switch kind.MIME.Value {
-	case "application/gzip":
-		r, err = gzip.NewReader(bytes.NewReader(raw))
-	case "application/x-xz":
-		r, err = xz.NewReader(bytes.NewReader(raw))
-	default:
-		r = bytes.NewReader(raw)
-		err = nil
+		return
 	}
 
-	if err != nil {
-		return make(map[string]map[string]Module), err
-	}
+	mods = make(map[string]map[string]Module)
 
-	res, err := io.ReadAll(r)
-	if err != nil {
-		return make(map[string]map[string]Module), err
-	}
-
-	data := make(map[string]map[string]Module)
-	var mods []Module
-
-	dec := yaml.NewDecoder(bytes.NewReader(res))
+	dec := yaml.NewDecoder(r)
 	for {
 		var mod Module
 		if err := dec.Decode(&mod); err != nil {
 			break
 		}
-		mods = append(mods, mod)
-	}
 
-	for _, mod := range mods {
 		if len(mod.Data.Name) > 0 && len(mod.Data.Stream) > 0 {
-			if data[mod.Data.Name] == nil {
-				data[mod.Data.Name] = make(map[string]Module)
+			if mods[mod.Data.Name] == nil {
+				mods[mod.Data.Name] = make(map[string]Module)
 			}
-			data[mod.Data.Name][mod.Data.Stream] = mod
+			mods[mod.Data.Name][mod.Data.Stream] = mod
 		}
 	}
 
-	return data, nil
+	return mods, nil
 }
 
 func (mod Module) GetPackages() []ModulePackage {

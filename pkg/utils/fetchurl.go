@@ -1,25 +1,56 @@
 package utils
 
 import (
+	"bytes"
+	"compress/gzip"
+	"context"
+	"github.com/h2non/filetype"
+	"github.com/h2non/filetype/types"
+	"github.com/ulikunitz/xz"
 	"io"
-	"log/slog"
 	"net/http"
-	"time"
 )
 
-func FetchUrl(url string) ([]byte, error) {
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-	if res, err := client.Get(url); err != nil {
-		return nil, err
-	} else {
-		defer func() {
-			if err := res.Body.Close(); err != nil {
-				slog.Error("Failed to close response body", "Error", err)
-			}
-		}()
+func FetchUrl(ctx context.Context, url string) (r io.Reader, err error) {
+	client := http.DefaultClient
 
-		return io.ReadAll(res.Body)
+	var req *http.Request
+	req, err = http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return
 	}
+
+	withContext := req.WithContext(ctx)
+
+	var res *http.Response
+	res, err = client.Do(withContext)
+	if err != nil {
+		return
+	}
+
+	var b []byte
+	b, err = io.ReadAll(res.Body)
+
+	var kind types.Type
+	kind, err = filetype.Match(b)
+	if err != nil {
+		return
+	}
+
+	contentType := kind.MIME.Value
+
+	if len(contentType) == 0 {
+		contentType = res.Header.Get("Content-Type")
+	}
+
+	switch kind.MIME.Value {
+	case "application/gzip":
+		r, err = gzip.NewReader(bytes.NewReader(b))
+	case "application/x-xz":
+		r, err = xz.NewReader(bytes.NewReader(b))
+	default:
+		r = bytes.NewReader(b)
+	}
+
+	return
 }

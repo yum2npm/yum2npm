@@ -1,12 +1,9 @@
 package yumrepodata
 
 import (
-	"bytes"
-	"compress/gzip"
+	"context"
 	"encoding/xml"
 	"errors"
-	"github.com/h2non/filetype"
-	"github.com/ulikunitz/xz"
 	"io"
 	"regexp"
 
@@ -35,7 +32,7 @@ type PackageVersion struct {
 	Rel     string   `xml:"rel,attr" json:"rel"`
 }
 
-func GetPrimary(baseUrl string, repomd RepoMetadata) (PrimaryMetadata, error) {
+func GetPrimary(ctx context.Context, baseUrl string, repomd *RepoMetadata) (meta *PrimaryMetadata, err error) {
 	var primary string
 
 	for _, x := range repomd.Data {
@@ -45,39 +42,21 @@ func GetPrimary(baseUrl string, repomd RepoMetadata) (PrimaryMetadata, error) {
 		}
 	}
 
-	raw, err := utils.FetchUrl(baseUrl + "/" + primary)
-	if err != nil {
-		return PrimaryMetadata{}, err
+	if len(primary) == 0 {
+		return
 	}
 
 	var r io.Reader
-
-	kind, err := filetype.Match(raw)
+	r, err = utils.FetchUrl(ctx, baseUrl+"/"+primary)
 	if err != nil {
-		return PrimaryMetadata{}, err
-	}
-	switch kind.MIME.Value {
-	case "application/gzip":
-		r, err = gzip.NewReader(bytes.NewReader(raw))
-	case "application/x-xz":
-		r, err = xz.NewReader(bytes.NewReader(raw))
-	default:
-		r = bytes.NewReader(raw)
-		err = nil
+		return
 	}
 
-	res, err := io.ReadAll(r)
-	if err != nil {
-		return PrimaryMetadata{}, err
-	}
+	meta = &PrimaryMetadata{}
 
-	var data PrimaryMetadata
+	err = xml.NewDecoder(r).Decode(meta)
 
-	if err = xml.Unmarshal(res, &data); err != nil {
-		return PrimaryMetadata{}, err
-	}
-
-	return data, nil
+	return
 }
 
 func (p PrimaryMetadata) GetPackageVersions(name string) (map[string]ModulePackage, error) {

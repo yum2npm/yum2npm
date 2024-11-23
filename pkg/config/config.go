@@ -14,6 +14,7 @@ type Config struct {
 	HTTP            HTTP          `yaml:"http"`
 	Repos           []Repo        `yaml:"repos"`
 	RefreshInterval time.Duration `yaml:"refreshInterval"`
+	Timeout         time.Duration `yaml:"timeout"`
 }
 
 type HTTP struct {
@@ -33,6 +34,7 @@ func Init(file string) (Config, error) {
 			ListenAddress: ":8080",
 		},
 		RefreshInterval: time.Hour,
+		Timeout:         20 * time.Second,
 	}
 
 	data, err := os.ReadFile(file)

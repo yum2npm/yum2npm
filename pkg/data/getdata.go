@@ -1,6 +1,7 @@
 package data
 
 import (
+	"context"
 	"log/slog"
 	"sync"
 	"time"
@@ -31,21 +32,31 @@ func FetchPeriodically(config *conf.Config, repodata *Repodata, modules *Modules
 func fetch(config *conf.Config, repodata *Repodata, modules *Modules) {
 	for _, repo := range config.Repos {
 		slog.Info("Refreshing repository", "Repository", repo.Name)
-		repomd, err := yumrepodata.GetRepoMetadata(repo.Url)
+
+		ctx, cancel := context.WithTimeout(context.Background(), config.Timeout)
+		defer cancel()
+
+		repomd, err := yumrepodata.GetRepoMetadata(ctx, repo.Url)
 		if err != nil {
 			slog.Error("Error fetching repository metadata", "Repository", repo.Name, "Error", err)
 			continue
 		}
 
-		primary, err := yumrepodata.GetPrimary(repo.Url, repomd)
+		ctx2, cancel2 := context.WithTimeout(context.Background(), config.Timeout)
+		defer cancel2()
+
+		primary, err := yumrepodata.GetPrimary(ctx2, repo.Url, repomd)
 		if err != nil {
 			slog.Error("Error fetching repository primary", "Repository", repo.Name, "Error", err)
 			continue
 		}
 
-		(*repodata)[repo.Name] = primary
+		(*repodata)[repo.Name] = *primary
 
-		(*modules)[repo.Name], err = yumrepodata.GetModules(repo.Url, repomd)
+		ctx3, cancel3 := context.WithTimeout(context.Background(), config.Timeout)
+		defer cancel3()
+
+		(*modules)[repo.Name], err = yumrepodata.GetModules(ctx3, repo.Url, repomd)
 		if err != nil {
 			slog.Error("Error fetching repository modules", "Repository", repo.Name, "Error", err)
 			continue

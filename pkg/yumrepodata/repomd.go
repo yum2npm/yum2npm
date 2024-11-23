@@ -1,8 +1,11 @@
 package yumrepodata
 
 import (
+	"bytes"
+	"context"
 	"encoding/xml"
 	"gitlab.com/yum2npm/yum2npm/pkg/utils"
+	"io"
 )
 
 type RepoMetadata struct {
@@ -43,18 +46,17 @@ type RepomdLocation struct {
 	Href    string   `xml:"href,attr"`
 }
 
-func GetRepoMetadata(baseUrl string) (RepoMetadata, error) {
-	raw, err := utils.FetchUrl(baseUrl + "/repodata/repomd.xml")
-
+func GetRepoMetadata(ctx context.Context, baseUrl string) (repomd *RepoMetadata, err error) {
+	r, err := utils.FetchUrl(ctx, baseUrl+"/repodata/repomd.xml")
 	if err != nil {
-		return RepoMetadata{}, err
+		return
 	}
 
-	var data RepoMetadata
+	repomd = &RepoMetadata{}
 
-	if err = xml.Unmarshal(raw, &data); err != nil {
-		return RepoMetadata{}, err
-	}
+	b, err := io.ReadAll(r)
 
-	return data, nil
+	err = xml.NewDecoder(bytes.NewReader(b)).Decode(repomd)
+
+	return
 }
