@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/h2non/filetype"
 	"github.com/h2non/filetype/types"
+	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
 	"io"
 	"net/http"
@@ -48,6 +49,8 @@ func FetchUrl(ctx context.Context, url string) (r io.Reader, err error) {
 		r, err = gzip.NewReader(bytes.NewReader(b))
 	case "application/x-xz":
 		r, err = xz.NewReader(bytes.NewReader(b))
+	case "application/zstd":
+		r, err = zstd.NewReader(bytes.NewReader(b))
 	default:
 		r = bytes.NewReader(b)
 	}
