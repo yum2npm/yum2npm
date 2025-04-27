@@ -31,6 +31,7 @@ func Log(next http.Handler) http.Handler {
 			"Duration", duration,
 			"Content-Length", newWriter.Header().Get("Content-Length"),
 			"Status", newWriter.statusCode,
+			"User-Agent", r.UserAgent(),
 		)
 	})
 }
