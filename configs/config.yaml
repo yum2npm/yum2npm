@@ -1,8 +1,7 @@
 ---
 
 http:
-  host: "0.0.0.0"
-  port: "8080"
+  listen_addr: ":8080"
 
 refreshInterval: "1h"
 

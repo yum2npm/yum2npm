@@ -37,12 +37,16 @@ func Init(file string) (Config, error) {
 		Timeout:         20 * time.Second,
 	}
 
-	data, err := os.ReadFile(file)
+	configFile, err := os.Open(file)
 	if err != nil {
 		return Config{}, err
 	}
+	defer func() { _ = configFile.Close() }()
 
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	dec := yaml.NewDecoder(configFile)
+	dec.KnownFields(true)
+
+	if err := dec.Decode(&config); err != nil {
 		return Config{}, err
 	}
 
