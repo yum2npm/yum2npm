@@ -46,16 +46,11 @@ func main() {
 	go startServer(&config, server, errCh)
 	go signalHandler(server, errCh)
 
-	for {
-		select {
-		case err, ok := <-errCh:
-			if !ok {
-				return
-			}
-			if err != nil && !errors.Is(err, http.ErrServerClosed) && !errors.Is(err, context.DeadlineExceeded) {
-				slog.Error("Error during server initialization", "Error", err)
-				close(errCh)
-			}
+	for err := range errCh {
+		if err != nil && !errors.Is(err, http.ErrServerClosed) && !errors.Is(err, context.DeadlineExceeded) {
+			slog.Error("Error during server initialization", "Error", err)
+			close(errCh)
+			os.Exit(1)
 		}
 	}
 }

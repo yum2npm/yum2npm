@@ -52,9 +52,12 @@ func GetRepoMetadata(ctx context.Context, baseUrl string) (repomd *RepoMetadata,
 		return
 	}
 
-	repomd = &RepoMetadata{}
-
 	b, err := io.ReadAll(r)
+	if err != nil {
+		return
+	}
+
+	repomd = &RepoMetadata{}
 
 	err = xml.NewDecoder(bytes.NewReader(b)).Decode(repomd)
 

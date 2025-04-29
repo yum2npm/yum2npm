@@ -31,6 +31,9 @@ func FetchUrl(ctx context.Context, url string) (r io.Reader, err error) {
 
 	var b []byte
 	b, err = io.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
 
 	var kind types.Type
 	kind, err = filetype.Match(b)
@@ -44,7 +47,7 @@ func FetchUrl(ctx context.Context, url string) (r io.Reader, err error) {
 		contentType = res.Header.Get("Content-Type")
 	}
 
-	switch kind.MIME.Value {
+	switch contentType {
 	case "application/gzip":
 		r, err = gzip.NewReader(bytes.NewReader(b))
 	case "application/x-xz":

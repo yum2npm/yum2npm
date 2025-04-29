@@ -1,5 +1,9 @@
 ---
 
+include:
+  - component: $CI_SERVER_FQDN/components/code-quality-oss/codequality-os-scanners-integration/golangci@1.0.7
+    inputs:
+      convert_to_sast: true
 stages:
   - test
   - build
@@ -28,16 +32,6 @@ variables:
     - GOOS: windows
       GOARCH:
         - amd64
-
-lint:
-  stage: test
-  image: golang:1.24.2
-  needs: []
-  cache: *go_cache
-  before_script:
-    - make prepare
-  script:
-    - make lint
 
 build:
   stage: build
