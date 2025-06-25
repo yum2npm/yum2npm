@@ -14,9 +14,7 @@ assets="$(
 
 release-cli create \
     --name "yum2npm v${tag_name}" \
-    --description "${CI_COMMIT_DESCRIPTION}" \
-    --tag-name "${tag_name}" \
-    --tag-message "${tag_message}" \
+    --tag-name "${CI_COMMIT_TAG}" \
     --ref "${CI_COMMIT_SHA}" \
     $(
         for asset in ${assets}; do
