@@ -18,7 +18,7 @@ func setupRouter(config *conf.Config, profiling bool, repodata *data.Repodata, m
 	mux.HandleFunc("GET /repos/{repo}/packages/{package}", handlers.GetPackage(repodata))
 	mux.HandleFunc("GET /repos/{repo}/modules", handlers.GetModules(modules))
 	mux.HandleFunc("GET /repos/{repo}/modules/{module}/packages", handlers.GetModulePackages(modules))
-	mux.HandleFunc("GET /repos/{repo}/modules/{module}/packages/:package", handlers.GetModulePackage(modules))
+	mux.HandleFunc("GET /repos/{repo}/modules/{module}/packages/{package}", handlers.GetModulePackage(modules))
 
 	if profiling {
 		mux.HandleFunc("GET /debug/pprof/", pprof.Index)
