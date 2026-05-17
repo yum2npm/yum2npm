@@ -1,7 +1,7 @@
 ---
 
 include:
-  - component: $CI_SERVER_FQDN/components/code-quality-oss/codequality-os-scanners-integration/golangci@1.0.7
+  - component: $CI_SERVER_FQDN/components/code-quality-oss/codequality-os-scanners-integration/golangci@1.4.0
     inputs:
       convert_to_sast: true
 stages:
@@ -35,7 +35,7 @@ variables:
 
 build:
   stage: build
-  image: golang:1.24.2
+  image: golang:1.26.3
   needs: []
   cache: *go_cache
   before_script:
