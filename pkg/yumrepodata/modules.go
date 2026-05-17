@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"gitlab.com/yum2npm/yum2npm/pkg/utils"
-	"gopkg.in/yaml.v3"
+	"go.yaml.in/yaml/v4"
 )
 
 type Module struct {

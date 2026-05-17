@@ -2,12 +2,11 @@ package config
 
 import (
 	"fmt"
+	"go.yaml.in/yaml/v4"
 	"net/url"
 	"os"
 	"regexp"
 	"time"
-
-	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
