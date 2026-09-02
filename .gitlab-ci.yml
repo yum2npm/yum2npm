@@ -35,7 +35,7 @@ variables:
 
 build:
   stage: build
-  image: golang:1.26.4
+  image: golang:1.27.1
   needs: []
   cache: *go_cache
   before_script:
