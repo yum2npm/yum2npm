@@ -2,7 +2,7 @@ module gitlab.com/yum2npm/yum2npm
 
 go 1.26
 
-toolchain go1.26.4
+toolchain go1.27.1
 
 require (
 	github.com/h2non/filetype v1.1.3
